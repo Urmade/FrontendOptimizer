@@ -1,22 +1,19 @@
 import * as readline from "readline";
 import * as fs from 'fs';
-import {IParser} from './View/IParser';
 import {CSSParser} from './Controller/CSSParser';
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   });
-  rl.question('Which CSS file should be optimized?', (path) => {
+  rl.question('Which CSS file should be optimized?\n', (path) => {
     try {
-        const file = fs.readFileSync(path);
-        console.log(file.length);
-        let parser:IParser = new CSSParser(file);
-        rl.write(parser.toString());
-
+        let file = fs.readFileSync(path);
+        let parser = new CSSParser(file);
+        rl.write(parser.logComplexity());
     }
     catch(e) {
-        rl.write("The file was not found!"+e);
+        rl.write("An error occurred!"+e);
     }
   
     rl.close();
