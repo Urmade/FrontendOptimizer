@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "declaration": true,
+        "sourceMap": false,
+        "module": "commonjs",
+        "removeComments": true,
+        "downlevelIteration": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": false,
+        "noFallthroughCasesInSwitch": true,
+        "outDir": "dest",
+        "declarationDir": "def",
+        "lib": ["es2015"],
+        "typeRoots": ["node_modules/@types/"]        
+    },
+    "files": ["src/index.ts"],
+    "include": [
+        "src/**/*"
+    ]
+}

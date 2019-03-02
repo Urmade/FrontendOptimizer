@@ -1,0 +1,82 @@
+body {
+    z-index: 1;
+}
+main {
+    width: 90%;
+    margin-left: 5%;
+}
+section.m-typographic-intro {
+    margin-bottom: 20px;
+}
+.content {
+    width: 100%;
+    height: 100%;
+}
+.taskInput {
+    top: 20%;
+    width: 50%;
+    margin-left: 25%;
+    position: absolute;
+    background: white;
+    box-shadow: 1px 1px 10px;
+    padding: 20px;
+    display: none;
+}
+.taskInput fieldset {
+    margin-bottom: 15px;
+}
+#defaultFlex {
+    margin-top: 2em;
+    margin-bottom: 1em;
+}
+#defaultDateInput {
+    display: block;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    padding: 5px;
+    border: 1px solid black;
+    width: 100%;
+}
+#dateChanger {
+    position: absolute;
+    border: 0;
+    padding: 10px;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    outline: none;
+    display: none;
+    z-index: 1;
+}
+#dateChanger.active {
+    display: block;
+}
+.journalentries table {
+    width: 100%;
+    margin: 40px 0;
+}
+.journalentries table tr {
+    height: 40px;
+}
+.journalentries table .group {
+    transition: all .5s;
+}
+.journalentries table .group .groupheader {
+    font-weight: bold;
+    padding-left: 10px;
+}
+.journalentries table .entry td {
+    display:inline-block; 
+    outline: none;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 100%;
+}
+.journalentries table .entry td.success {
+    transition: transform 750ms ease-in-out;
+}
+.journalentries table .entry td .date {
+    float: right;
+    font-style: italic;
+    color: #0067B8;
+}
