@@ -20,13 +20,16 @@ export class CSSParser implements IParser {
         }
         return blocks;
     }
-    logComplexity():string {
+    logComplexity(): string {
         let numAttributes = 0;
         let numRules = this.map.rules.length;
-        for(let i = 0, rules = this.map.rules; i < rules.length; i++) {
+        for (let i = 0, rules = this.map.rules; i < rules.length; i++) {
             numAttributes += rules[i].attributes.length;
         }
-        return(`Number of CSS Attributes in the file:${numAttributes}\nNumber of CSS Selectors in the file:${numRules}\n`);
+        return (`Number of CSS Attributes in the file:${numAttributes}\nNumber of CSS Selectors in the file:${numRules}\n`);
+    }
+    toString(): string {
+        return this.map.toString();
     }
 }
 
@@ -38,17 +41,24 @@ class CSSMap {
             this.rules.push(new Rule(csb[i]));
         }
     }
+    toString(): string {
+        let ruleStr = "";
+        for (let i = 0; i < this.rules.length; i++) {
+            ruleStr += this.rules[i].toString() + "\n";
+        }
+        return ruleStr;
+    }
 }
 
 class Rule {
-    selector: Array<string>;
+    selector: SelectorTree;
     attributes: Array<Attribute>;
 
     constructor(selectorBlock: string) {
         const sel = selectorBlock.substring(0, selectorBlock.indexOf("{"));
         const attributeString = selectorBlock.substring(selectorBlock.indexOf("{") + 1, selectorBlock.indexOf("}"));
         this.attributes = this.parseAttributes(attributeString.replace(/\n/g, ""));
-        this.selector = sel.trim().replace("\n", "").split(" "); //TODO Selectors, Inheritance, ...
+        this.selector = new SelectorTree(new SelectorNode(sel.trim().replace("\n", "")));
     }
     parseAttributes(attrString: string): Array<Attribute> {
         const attributes = attrString.split(";");
@@ -66,9 +76,15 @@ class Rule {
     cleanAttributes(attrString: string): string {
         return attrString.replace(/\s/g, "").trim();
     }
+    toString(): string {
+        let attrStr = "";
+        for (let i = 0; i < this.attributes.length; i++) {
+            attrStr += this.attributes[i].toString() + "\n";
+        }
+        return this.selector.toString() + "{ \n" + attrStr + "}\n";
+    }
 }
 
-//TODO Implement handler for queries
 class Attribute {
     attribute: string;
     value: string;
@@ -77,7 +93,133 @@ class Attribute {
         this.attribute = attribute;
         this.value = value;
     }
-    toString() {
-        return this.attribute + ":" + this.value;
+    toString(): string {
+        return this.attribute + ":" + this.value + ";";
+    }
+    toJSON() {
+        return {
+            attribute: this.attribute,
+            value: this.value
+        }
+    }
+}
+enum SelectorType {
+    // Not a CSS Selector, used for CSS Selector storage
+    TopNode = "TopNode",
+    // el {}
+    Basic = "Basic",
+    // el:selector {}
+    PseudoClass = "PseudoClass",
+    //el::selector
+    PseudoElement = "PseudoElement",
+    // el > el {}
+    Parent = "Parent",
+    // el  + el
+    Successor = "AfterSel",
+    // el ~ el
+    Predecessor = "Preceed",
+    // @ Rule
+    AtRule = "AtRule"
+}
+class SelectorTree {
+    topNode: SelectorNode;
+    type: SelectorType;
+    constructor(firstNode: SelectorNode) {
+        this.topNode = firstNode;
+        this.topNode.insert();
+    }
+    toString(): string {
+        return this.topNode.toString();
+    }
+}
+class SelectorNode {
+    value: Array<string>;
+    type: SelectorType;
+    childNodes: Array<SelectorNode>;
+    constructor(initialString: string) {
+        this.value = [initialString.trim()];
+        this.type = SelectorType.Basic;
+        this.childNodes = [];
+    }
+    insert() {
+        const initialVal = this.value[0];
+        //Filter out pseudo Elements seperatly
+
+        const pseudoClass = this.value[0].indexOf(":");
+        const parent = this.value[0].indexOf(">");
+        const after = this.value[0].indexOf("+");
+        const pre = this.value[0].indexOf("~");
+
+        let specials: Array<number> = [];
+        if (pseudoClass > -1) specials.push(pseudoClass);
+        if (parent > -1) specials.push(parent);
+        if (after > -1) specials.push(after);
+        if (pre > -1) specials.push(pre);
+
+        if (specials.length > 0 && this.value[0].indexOf("@") >= 0) {
+            throw "InvalidCSSError";
+        }
+        else if (specials.length > 0) {
+            specials.sort((a, b) => a - b);
+            if (this.value[0].charAt(specials[0]) == ":" && this.value[0].charAt(specials[0] + 1) == ":") {
+                this.value[0] = "::";
+                this.type = SelectorType.PseudoElement;
+                this.childNodes.push(
+                    new SelectorNode(
+                        initialVal.substring(0, specials[0])
+                    ),
+                    new SelectorNode(
+                        initialVal.substring(specials[0] + 2)
+                    )
+                );
+            }
+            else {
+                this.value[0] = this.value[0].charAt(specials[0]);
+                this.type = this.determineType(this.value[0].charAt(0));
+                this.childNodes.push(
+                    new SelectorNode(
+                        initialVal.substring(0, specials[0])
+                    ),
+                    new SelectorNode(
+                        initialVal.substring(specials[0] + 1)
+                    )
+                );
+            }
+            
+            this.childNodes[0].value = this.childNodes[0].value[0].trim().split(" ");
+            this.childNodes[1].insert();
+        }
+        else {
+            this.value = initialVal.split(" ");
+            //TODO: Enhance At-Rule handling
+            /*
+            Idea at-Rule parser: only 8 different types of @-rules (only 5 should be common), maybe hardcode handling?
+            */
+            if (this.value[0].charAt(0) == "@") {
+                this.type = SelectorType.AtRule;
+            }
+        }
+    }
+    determineType(selectorChar: string): SelectorType {
+        switch (selectorChar) {
+            case "::": return SelectorType.PseudoElement;
+            case ":": return SelectorType.PseudoClass;
+            case ">": return SelectorType.Parent;
+            case "+": return SelectorType.Successor;
+            case "~": return SelectorType.Predecessor;
+            default: throw "NoTypeDetected";
+        }
+    }
+    toJSON() {
+
+    }
+    toString(): string {
+        if (this.childNodes.length == 2) {
+            if (this.type == SelectorType.PseudoClass || this.type == SelectorType.PseudoElement) return this.childNodes[0].toString() + `${this.value}` + this.childNodes[1].toString();
+            else return this.childNodes[0].toString() + ` ${this.value} ` + this.childNodes[1].toString();
+        }
+        else {
+            return this.value.join(" ");
+        }
     }
 }

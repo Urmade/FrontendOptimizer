@@ -10,6 +10,8 @@ const rl = readline.createInterface({
     try {
         let file = fs.readFileSync(path);
         let parser = new CSSParser(file);
+        let rStr = parser.toString();
+        rl.write(rStr);
         rl.write(parser.logComplexity());
     }
     catch(e) {

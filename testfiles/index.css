@@ -1,3 +1,27 @@
+.complex #pseudo:active {
+    height: 100%;
+    background-color: black;
+}
+.complex #pseudo::after:hover {
+    height: 100%;
+    background-color: black;
+}
+.complex #parent > div .stuff {
+    height: 100%;
+    background-color: black;
+}
+.complex #parent + div .stuff {
+    height: 100%;
+    background-color: black;
+}
+.complex #parent ~ div .stuff {
+    height: 100%;
+    background-color: black;
+}
+.complex #parent > div .hoverStuff:hover {
+    height: 100%;
+    background-color: black;
+}
 body {
     z-index: 1;
 }
