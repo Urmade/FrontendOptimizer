@@ -106,13 +106,22 @@ class Rule {
 class Attribute {
     attribute: string;
     value: string;
+    important:boolean;
 
     constructor(attribute: string, value: string) {
         this.attribute = attribute;
-        this.value = value;
+        if(value.includes("!important")) {
+            this.value = value.substring(0,value.indexOf("!important")).trim();
+            this.important = true;
+        }
+        else {
+            this.value = value;
+            this.important = false;
+        }
     }
     toString(): string {
-        return this.attribute + ":" + this.value + ";";
+        if(this.important) return `${this.attribute}:${this.value}!important;`;
+        else return `${this.attribute}:${this.value};`;
     }
     toJSON() {
         return {

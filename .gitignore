@@ -3,3 +3,5 @@ node_modules
 dest
 def
 testfiles
+Roadmap.txt
+.gitignore
