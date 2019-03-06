@@ -1,0 +1,4 @@
+Build HTML Interpreter
+Shorten CSS Names, specify them
+Delete unused statements
+Merge all Rules which share common attributes to commas

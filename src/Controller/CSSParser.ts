@@ -7,7 +7,8 @@ export class CSSParser implements IParser {
     constructor(file: Buffer) {
         //TODO Ignore commented files
         const strFile = file.toLocaleString();
-        const stringMap = this.stringToCSSBlocks(strFile);
+        const cleanStringFile = this.removeComments(strFile);
+        const stringMap = this.stringToCSSBlocks(cleanStringFile);
         this.map = new CSSMap(stringMap);
     }
 
@@ -15,10 +16,19 @@ export class CSSParser implements IParser {
         let blocks: Array<string> = [];
         while (file.length > 0) {
             let block = file.substring(0, file.indexOf("}") + 1);
-            file = file.substring(file.indexOf("}") + 1);
+            file = file.substring(file.indexOf("}") + 1).trim();
             blocks.push(block);
         }
         return blocks;
+    }
+    removeComments(strFile: string): string {
+        if (strFile.indexOf("/*") > -1) {
+            if (strFile.indexOf("*/") > -1)
+                return strFile.substring(0, strFile.indexOf("/*")) +
+                    this.removeComments(strFile.substring(strFile.indexOf("*/") + 2));
+            else return strFile.substring(0, strFile.indexOf("/*"));
+        }
+        else return strFile;
     }
     logComplexity(): string {
         let numAttributes = 0;
@@ -38,7 +48,15 @@ class CSSMap {
 
     constructor(CSSstringBlocks: Array<string>) {
         for (let i = 0, csb = CSSstringBlocks; i < csb.length; i++) {
-            this.rules.push(new Rule(csb[i]));
+            if (csb[i].indexOf(",") > -1) {
+                const sel = csb[i].substring(0, csb[i].indexOf("{"));
+                const attributeString = csb[i].substring(csb[i].indexOf("{") + 1, csb[i].indexOf("}"));
+                const selectors = sel.split(",");
+                for (let j = 0; j < selectors.length; j++) {
+                    this.rules.push(new Rule(`${selectors[j].trim()}{${attributeString}}`));
+                }
+            }
+            else this.rules.push(new Rule(csb[i]));
         }
     }
     toString(): string {
@@ -54,9 +72,9 @@ class Rule {
     selector: SelectorTree;
     attributes: Array<Attribute>;
 
-    constructor(selectorBlock: string) {
-        const sel = selectorBlock.substring(0, selectorBlock.indexOf("{"));
-        const attributeString = selectorBlock.substring(selectorBlock.indexOf("{") + 1, selectorBlock.indexOf("}"));
+    constructor(ruleString: string) {
+        const sel = ruleString.substring(0, ruleString.indexOf("{"));
+        const attributeString = ruleString.substring(ruleString.indexOf("{") + 1, ruleString.indexOf("}"));
         this.attributes = this.parseAttributes(attributeString.replace(/\n/g, ""));
         this.selector = new SelectorTree(new SelectorNode(sel.trim().replace("\n", "")));
     }
@@ -141,6 +159,7 @@ class SelectorNode {
         this.type = SelectorType.Basic;
         this.childNodes = [];
     }
+    //Iplement Selector seperators
     insert() {
         const initialVal = this.value[0];
         //Filter out pseudo Elements seperatly
@@ -185,7 +204,7 @@ class SelectorNode {
                     )
                 );
             }
-            
+
             this.childNodes[0].value = this.childNodes[0].value[0].trim().split(" ");
             this.childNodes[1].insert();
         }

@@ -22,6 +22,11 @@
     height: 100%;
     background-color: black;
 }
+.simple p, .simple div, .optimizedSimple {
+    color: green;
+    border: 5px solid purple;
+}
+/*
 body {
     z-index: 1;
 }
@@ -104,3 +109,4 @@ section.m-typographic-intro {
     font-style: italic;
     color: #0067B8;
 }
+*/
