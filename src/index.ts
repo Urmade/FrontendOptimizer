@@ -1,6 +1,6 @@
 import * as readline from "readline";
 import * as fs from 'fs';
-import {CSSParser} from './Controller/CSSParser';
+import {CSSParser} from './Controller/CSSParser/CSSParser';
 
 const rl = readline.createInterface({
     input: process.stdin,

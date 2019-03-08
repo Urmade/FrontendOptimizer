@@ -26,6 +26,17 @@
     color: green;
     border: 5px solid purple;
 }
+
+@media only screen and (max-width: 600px) {
+    body {
+        color: blue;
+        height: 20%!important;
+    }
+    div {
+        height: 100%;
+        font-weight: bold;
+    }
+}
 /*
 body {
     z-index: 1;
