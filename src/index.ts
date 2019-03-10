@@ -11,7 +11,7 @@ const rl = readline.createInterface({
     let type = path;
     rl.question('Which file should be optimized:', (path) => {
       try {
-          let file = fs.readFileSync(path);
+          let file = fs.readFileSync(path).toLocaleString();
           if(type == "CSS") {
             let parser = new CSSParser(file);
           //let rStr = parser.toString();

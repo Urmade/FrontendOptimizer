@@ -5,9 +5,8 @@ export class CSSParser implements IParser {
 
     map: CSSMap;
 
-    constructor(file: Buffer) {
-        const strFile = file.toLocaleString();
-        const cleanStringFile = this.removeComments(strFile).trim();
+    constructor(file: string) {
+        const cleanStringFile = this.removeComments(file).trim();
         this.map = new CSSMap(cleanStringFile);
     }
     removeComments(strFile: string): string {

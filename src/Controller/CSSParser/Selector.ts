@@ -49,10 +49,8 @@ export class SelectorNode {
         if (parent > -1) specials.push(parent);
         if (after > -1) specials.push(after);
         if (pre > -1) specials.push(pre);
-        //Filter out pseudo Elements seperatly
 
         if (specials.length > 0 && this.value[0].charAt(0) == "@") {
-            //TODO Handle At-Rules
             const atRule = this.value[0].split(" ")[0];
             this.type = SelectorType.AtRule;
             switch(atRule) {
