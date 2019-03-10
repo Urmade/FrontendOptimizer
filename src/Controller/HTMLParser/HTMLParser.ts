@@ -2,7 +2,7 @@ import { Element } from "./HTMLElement";
 export class HTMLParser {
     DOM: Element;
     constructor(file: string) {
-        file = this.removeClosingTagWhitespace(this.removeComments(file));
+        file = this.removeClosingTagWhitespace(this.removeComments(file.trim()));
         this.DOM = new Element(file);
     }
 
