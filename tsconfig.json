@@ -4,7 +4,7 @@
         "declaration": true,
         "sourceMap": false,
         "module": "commonjs",
-        "removeComments": true,
+        "removeComments": false,
         "downlevelIteration": true,
         "noUnusedLocals": true,
         "noUnusedParameters": false,

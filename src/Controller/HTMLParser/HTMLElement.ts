@@ -34,41 +34,14 @@ export class Element {
 
         //TAG PARSING
 
-        //For easier extraction of the metadata of the DOM Element, the brackets of the opening tag are removed and whitespace in the beginning and in the end of the tag is deleted
-        let openingTagValues = HTMLString.substring(HTMLString.indexOf("<") + 1, HTMLString.indexOf(">")).trim();
-
-        //If the tag has Whitespace left (indicating that more than the tagname is present)
-        if (openingTagValues.indexOf(" ") > -1) {
-            //Set the tagname to the first coherend string in the tag
-            this.tagname = openingTagValues.substring(0, openingTagValues.indexOf(" "));
-
-            //Split all attributes of the element besides the tagname (and preprocess them, for more info read the getAttributes docs)
-            let attributes = this.getAttributes(openingTagValues.substring(openingTagValues.indexOf(" ") + 1));
-
-            //Go through all attributes of the element and process them
-            for(let i = 0; i < attributes.length; i++) {
-                
-                //Split the attributes into an attribute name and an attribute value (Based on the assumption that the attribute is something="something") 
-                let valuePair:Array<string> = [];
-                valuePair.push(attributes[i].substring(0, attributes[i].indexOf("=")));
-                valuePair.push(attributes[i].substring(attributes[i].indexOf("=")+2,attributes[i].length-1));
-
-                //Filter out special attributes that are interpreted specifically at parsing time
-                if(valuePair[0] == "id") this.id = valuePair[1];
-                else if (valuePair[0] == "class") this.classes = valuePair[1].split(" ");
-                else if (valuePair[0] == "style") {
-                    //If an inline style is detected, it is directly parsed through the CSSParser and therefore made interpretable
-                    this.attributes.push(new Attribute(valuePair[0],new CSSParser(`{${valuePair[1]}}`)));
-                }
-                else this.attributes.push(new Attribute(valuePair[0],valuePair[1]));
-            }
-        }
-        //If only the tagname is present, it gets set directly
-        else this.tagname = openingTagValues;
+        let tagInfos = this.parseTag(this,HTMLString);
+        this.classes = tagInfos["class"];
+        this.id = tagInfos["id"];
+        this.attributes = tagInfos["attributes"];
+        this.tagname = tagInfos["tag"];
 
         //If the tag is immediatly closed (/>), don't search for children
         if (HTMLString.charAt(HTMLString.indexOf(">") - 1) == "/") return;
-
 
         //CHILD PARSING
 
@@ -122,6 +95,53 @@ export class Element {
         else if (this.tagname == "style") this.attributes.push(new Attribute("style", new CSSParser(innerHTML)));
         //JS Scripts get inserted into the DOM Element as innerText (Could be executed via eval(this.innerText))
         else this.innerText = innerHTML;
+    }
+
+    parseTag(el:Element, HTMLString:string):Object {
+
+        let tagname = "";
+        let id  = "";
+        let classes = [];
+        let attrArr = [];
+
+        //For easier extraction of the metadata of the DOM Element, the brackets of the opening tag are removed and whitespace in the beginning and in the end of the tag is deleted
+        let openingTagValues = HTMLString.substring(HTMLString.indexOf("<") + 1, HTMLString.indexOf(">")).trim();
+
+        //If the tag has Whitespace left (indicating that more than the tagname is present)
+        if (openingTagValues.indexOf(" ") > -1) {
+            //Set the tagname to the first coherend string in the tag
+            tagname = openingTagValues.substring(0, openingTagValues.indexOf(" "));
+
+            //Split all attributes of the element besides the tagname (and preprocess them, for more info read the getAttributes docs)
+            let attributes = el.getAttributes(openingTagValues.substring(openingTagValues.indexOf(" ") + 1));
+
+            //Go through all attributes of the element and process them
+            for(let i = 0; i < attributes.length; i++) {
+                
+                //Split the attributes into an attribute name and an attribute value (Based on the assumption that the attribute is something="something") 
+                let valuePair:Array<string> = [];
+                valuePair.push(attributes[i].substring(0, attributes[i].indexOf("=")));
+                valuePair.push(attributes[i].substring(attributes[i].indexOf("=")+2,attributes[i].length-1));
+
+                //Filter out special attributes that are interpreted specifically at parsing time
+                if(valuePair[0] == "id") id = valuePair[1];
+                else if (valuePair[0] == "class") classes = valuePair[1].split(" ");
+                else if (valuePair[0] == "style") {
+                    //If an inline style is detected, it is directly parsed through the CSSParser and therefore made interpretable
+                    attrArr.push(new Attribute(valuePair[0],new CSSParser(`{${valuePair[1]}}`)));
+                }
+                else attrArr.push(new Attribute(valuePair[0],valuePair[1]));
+            }
+        }
+        //If only the tagname is present, it gets set directly
+        else tagname = openingTagValues;
+
+        return {
+            "tag": tagname,
+            "id": id,
+            "class": classes,
+            "attributes": attrArr
+        }
     }
     /**
      * Looks for the first tag in a given text string and returns true if such a tag exists.
